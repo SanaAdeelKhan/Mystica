@@ -1,0 +1,18 @@
+# Ignore local Netlify folder
+.netlify/
+
+# Ignore environment variable files
+.env
+.env.local
+.env.*.local
+
+# Node modules
+node_modules/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Mac system files
+.DS_Store
