@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MYSTICA Quiz App</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background-color: #f4f4f4;
+    }
+
+    #quiz-container {
+      display: none;
+      margin-top: 20px;
+    }
+
+    .option-button {
+      margin: 10px;
+      padding: 10px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      font-size: 18px;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+
+    .option-button:hover {
+      background-color: #45a049;
+    }
+
+    #owl-image {
+      width: 150px;
+      height: 150px;
+      margin-top: 20px;
+    }
+
+    #question {
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+
+    #quiz-form input {
+      margin: 10px;
+      padding: 10px;
+      font-size: 18px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    #quiz-form button {
+      padding: 10px 20px;
+      background-color: #008CBA;
+      color: white;
+      border: none;
+      font-size: 18px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    #quiz-form button:hover {
+      background-color: #007B9E;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Welcome to the MYSTICA Quiz App</h1>
+
+  <form id="quiz-form">
+    <label for="age">Age: </label>
+    <input type="number" id="age" name="age" min="5" required>
+
+    <label for="subject">Subject: </label>
+    <input type="text" id="subject" name="subject" required>
+
+    <button type="submit">Generate Quiz</button>
+  </form>
+
+  <div id="quiz-container">
+    <div id="question"></div>
+    <div id="options"></div>
+    <img id="owl-image" src="images/owl-neutral.jpeg" alt="Owl Image">
+  </div>
+
+  <script>
+    const quizForm = document.getElementById("quiz-form");
+    const ageInput = document.getElementById("age");
+    const subjectInput = document.getElementById("subject");
+    const quizContainer = document.getElementById("quiz-container");
+    const questionElement = document.getElementById("question");
+    const optionsContainer = document.getElementById("options");
+    const owlImage = document.getElementById("owl-image");
+
+    // Updated sound files to .wav
+    const clapSound = new Audio("sounds/clap.wav");
+    const failSound = new Audio("sounds/fail.wav");
+
+    let correctAnswer = "";
+
+    quizForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const age = ageInput.value;
+      const subject = subjectInput.value;
+
+      quizContainer.style.display = "none";
+      questionElement.innerText = "Loading...";
+      optionsContainer.innerHTML = "";
+      owlImage.src = "images/owl-neutral.jpeg"; // 🟡 Reset owl to neutral on load
+
+      const response = await fetch("/.netlify/functions/quiz", {
+        method: "POST",
+        body: JSON.stringify({ age, subject }),
+        headers: { "Content-Type": "application/json" },
+      });
+
+      const data = await response.json();
+
+      if (!data.question || !data.options || !data.correctAnswer) {
+        questionElement.innerText = "Error: Couldn't load quiz. Try again.";
+        return;
+      }
+
+      questionElement.innerText = data.question;
+      correctAnswer = data.correctAnswer;
+      optionsContainer.innerHTML = "";
+
+      data.options.forEach((option) => {
+        const button = document.createElement("button");
+        button.innerText = option;
+        button.className = "option-button";
+        button.onclick = () => checkAnswer(option);
+        optionsContainer.appendChild(button);
+      });
+
+      quizContainer.style.display = "block";
+    });
+
+    function checkAnswer(selected) {
+      if (selected === correctAnswer) {
+        owlImage.src = "images/happy-owl.jpeg"; // ✅ Happy owl
+        clapSound.play();
+      } else {
+        owlImage.src = "images/sad-owl.jpeg"; // ❌ Sad owl
+        failSound.play();
+      }
+    }
+  </script>
+
+</body>
+</html>
